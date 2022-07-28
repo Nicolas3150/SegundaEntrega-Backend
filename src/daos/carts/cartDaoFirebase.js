@@ -6,8 +6,21 @@ class CartDaoFirebase extends FirebaseContainer {
         super("carritos")
     }
 
+    cartExists = async (id) => {
+        try {
+            const snapshot = await this.collection.get()
+            const items = snapshot.docs;
+            const response = items.map(item => ({ id: item.id, ...item.data() }))
+            const i = response.filter(item => item.id === id)
+            return (i.length !== 0)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     getProductsInCart = async (req, res) => {
         try {
+            if (!await this.cartExists(req.params.id)) return res.status(404).json({ error: "Carrito no encontrado" })
             const document = this.collection.doc(req.params.id)
             const item = await document.get()
             res.json(item.data().products)
@@ -18,6 +31,7 @@ class CartDaoFirebase extends FirebaseContainer {
 
     addProductToCart = async (req, res) => {
         try {
+            if (!await this.cartExists(req.params.id)) return res.status(404).json({ error: "Carrito no encontrado" })
             const document = this.collection.doc(req.params.id)
             const item = await document.get()
 
@@ -28,7 +42,7 @@ class CartDaoFirebase extends FirebaseContainer {
 
             await document.update({
                 timestamp: item.data().timestamp,
-                products: [{id: product.id, ...product.data() }, ...item.data().products]
+                products: [{ id: product.id, ...product.data() }, ...item.data().products]
             })
             res.status(201)
             console.log('Producto insertado!')
@@ -39,6 +53,7 @@ class CartDaoFirebase extends FirebaseContainer {
 
     deleteProductInCart = async (req, res) => {
         try {
+            if (!await this.cartExists(req.params.id)) return res.status(404).json({ error: "Carrito no encontrado" })
             const document = this.collection.doc(req.params.id)
             const item = await document.get()
             await document.update({
