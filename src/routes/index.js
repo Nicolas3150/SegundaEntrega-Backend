@@ -19,6 +19,7 @@ router.get('/carrito/:id/productos', cart.getProductsInCart)
 router.post('/carrito/:id/productos', cart.addProductToCart)
 router.delete('/carrito/:id/productos/:id_prod', cart.deleteProductInCart)
 
+router.get('/carrito', cart.getAll)
 
 function checkIfAdmin(req, res, next){
     admin ? next() : res.status(401).json({ error: -1, descripcion: "Ruta no autorizada" })
